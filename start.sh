@@ -19,9 +19,10 @@ if [ ! -d "$VENV_DIR" ]; then
   echo "Creating Python environment..."
   python3 -m venv "$VENV_DIR"
 fi
-echo "Installing backend dependencies (first run may take a few minutes)..."
-"$VENV_DIR/bin/python" -m pip install -q --upgrade pip
-"$VENV_DIR/bin/python" -m pip install -q -r "$BACKEND_DIR/requirements.txt"
+if ! "$VENV_DIR/bin/python" -c 'import fastapi, torch, torchvision, sklearn' >/dev/null 2>&1; then
+  echo "Installing backend dependencies (first run may take a few minutes)..."
+  "$VENV_DIR/bin/python" -m pip install -r "$BACKEND_DIR/requirements.txt"
+fi
 
 if [ ! -d "$FRONTEND_DIR/node_modules" ]; then
   echo "Installing dashboard dependencies..."
@@ -38,14 +39,45 @@ cleanup() {
 }
 trap cleanup INT TERM EXIT
 
+api_is_running() {
+  curl -fsS --max-time 2 http://127.0.0.1:8001/api/health 2>/dev/null | grep -q '"ok":true'
+}
+web_is_running() {
+  curl -fsS --max-time 2 http://127.0.0.1:5173/ 2>/dev/null | grep -q '<title>LoopLab'
+}
+port_is_busy() {
+  command -v lsof >/dev/null 2>&1 && lsof -nP -iTCP:"$1" -sTCP:LISTEN >/dev/null 2>&1
+}
+
 echo "Starting LoopLab..."
-(cd "$BACKEND_DIR" && "$VENV_DIR/bin/python" -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload) &
-API_PID=$!
-(cd "$FRONTEND_DIR" && npm run dev -- --host 127.0.0.1) &
-WEB_PID=$!
+if api_is_running; then
+  echo "API already running on port 8001."
+else
+  if port_is_busy 8001; then
+    echo "Port 8001 is in use by another app. Stop it or change LoopLab's API port."
+    exit 1
+  fi
+  (cd "$BACKEND_DIR" && exec "$VENV_DIR/bin/python" -m uvicorn app.main:app --host 127.0.0.1 --port 8001 --reload) &
+  API_PID=$!
+fi
+
+if web_is_running; then
+  echo "Dashboard already running on port 5173."
+else
+  if port_is_busy 5173; then
+    echo "Port 5173 is in use by another app. Stop it or use another dashboard port."
+    exit 1
+  fi
+  (cd "$FRONTEND_DIR" && exec npm run dev -- --host 127.0.0.1 --strictPort) &
+  WEB_PID=$!
+fi
 
 echo ""
 echo "LoopLab dashboard: http://localhost:5173"
-echo "API documentation: http://localhost:8000/docs"
-echo "Press Ctrl+C to stop both services."
-wait
+echo "API documentation: http://localhost:8001/docs"
+if [ -n "$API_PID$WEB_PID" ]; then
+  echo "Press Ctrl+C to stop services started by this command."
+  wait
+else
+  echo "Both services were already running. Leave their original terminals open while using LoopLab."
+fi

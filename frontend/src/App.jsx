@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Activity, ArrowDownRight, ArrowUpRight, Bot, Check, ChevronRight, CircleHelp, Clock3, Cpu, FlaskConical, Gauge, Github, Layers3, LoaderCircle, Play, Plus, RefreshCw, Settings2, Sparkles, Target, X } from 'lucide-react';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const API = import.meta.env.VITE_API_URL || 'http://localhost:8001/api';
 const fmt = (x, n=1) => Number.isFinite(x) ? `${(x*100).toFixed(n)}%` : '—';
 const shortTime = (d) => d ? new Date(d).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '—';
 const configSummary = (c={}) => `${c.hidden_units ?? '—'} units · ${c.optimizer ?? '—'} · lr ${c.learning_rate ?? '—'}`;
@@ -27,7 +27,7 @@ function App(){
       <div className="workspace"><span className="workspace-dot"/><div><strong>Fashion-MNIST</strong><small>Experiment workspace</small></div><ChevronRight size={15}/></div>
       <div className="nav-label">WORKSPACE</div>
       <nav><a className="nav-item active"><Layers3 size={17}/>Overview<span className="nav-count">{runs.length}</span></a><a className="nav-item" href="#history"><FlaskConical size={17}/>Experiments</a><a className="nav-item" onClick={()=>setShowConfig(true)}><Settings2 size={17}/>Configuration</a></nav>
-      <div className="side-bottom"><div className="agent-card"><div className="agent-icon"><Bot size={18}/></div><div><b>Local agent</b><small>Rule-based · ready</small></div><span className="live-dot"/></div><div className="side-links"><span><CircleHelp size={15}/>About this project</span><a href="http://localhost:8000/docs" target="_blank"><Github size={15}/>API documentation</a></div><div className="profile"><div className="avatar">LL</div><div><b>LoopLab</b><small>Local instance</small></div><span className="status-pill"><i/>Connected</span></div></div>
+      <div className="side-bottom"><div className="agent-card"><div className="agent-icon"><Bot size={18}/></div><div><b>Local agent</b><small>Rule-based · ready</small></div><span className="live-dot"/></div><div className="side-links"><span><CircleHelp size={15}/>About this project</span><a href="http://localhost:8001/docs" target="_blank"><Github size={15}/>API documentation</a></div><div className="profile"><div className="avatar">LL</div><div><b>LoopLab</b><small>Local instance</small></div><span className="status-pill"><i/>Connected</span></div></div>
     </aside>
 
     <main className="main-content">
