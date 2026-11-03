@@ -1,3 +1,5 @@
+**Tech stack:** Python, PyTorch, torchvision, FastAPI, React, Vite, SQLite, Recharts
+
 # LoopLab
 
 LoopLab is a local experiment loop for Fashion-MNIST. A transparent, rule-based agent proposes one untried configuration change, a background worker trains it, and the run is promoted only when its validation accuracy beats the current best.
